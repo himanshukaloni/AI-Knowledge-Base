@@ -3,10 +3,6 @@ const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
 const User = require("../models/User");
 
-/**
- * Verifies the JWT from the Authorization header and attaches the
- * authenticated user (without password) to req.user.
- */
 const protect = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -32,9 +28,6 @@ const protect = asyncHandler(async (req, res, next) => {
   next();
 });
 
-/**
- * Role-based access guard. Usage: authorize("admin")
- */
 const authorize = (...allowedRoles) => (req, res, next) => {
   if (!req.user || !allowedRoles.includes(req.user.role)) {
     throw new ApiError(403, "You do not have permission to perform this action");
