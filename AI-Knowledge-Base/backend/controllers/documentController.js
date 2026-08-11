@@ -25,10 +25,7 @@ const uploadDocument = asyncHandler(async (req, res) => {
     status: "uploaded",
   });
 
-  // Fire-and-forget: process asynchronously so the client gets an immediate response
-  // and can poll /status or rely on the next list refresh to see "processed".
   processDocument(document._id).catch((err) => {
-    // errors are already persisted onto the document by processDocument's own catch block
   });
 
   res.status(201).json(new ApiResponse(201, { document }, "Document uploaded, processing started"));
@@ -82,7 +79,6 @@ const deleteDocument = asyncHandler(async (req, res) => {
   try {
     await fs.unlink(document.storagePath);
   } catch (err) {
-    // File may already be missing on disk; not fatal to the delete operation
   }
 
   await document.deleteOne();
