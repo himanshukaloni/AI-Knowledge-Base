@@ -4,10 +4,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
 const ApiResponse = require("../utils/ApiResponse");
 
-/**
- * Non-streaming ask endpoint (simple request/response, used as a fallback
- * or for API consumers that don't need streaming).
- */
+
 const askQuestion = asyncHandler(async (req, res) => {
   const { question, chatId } = req.body;
 
@@ -30,11 +27,6 @@ const askQuestion = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, { answer, sources, chatId: chat._id }));
 });
 
-/**
- * Streaming ask endpoint using Server-Sent Events (SSE).
- * The frontend reads this via EventSource / fetch + ReadableStream to render
- * a token-by-token typing effect, matching the ChatGPT-style UX requirement.
- */
 const askQuestionStream = asyncHandler(async (req, res) => {
   const { question, chatId } = req.body;
 
