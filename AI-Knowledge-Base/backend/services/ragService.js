@@ -18,11 +18,6 @@ Rules:
 - Be concise and directly answer the question.
 - Do not mention "the context" or "the provided text" in your answer - answer naturally as if you know it.`;
 
-/**
- * Runs Atlas Vector Search ($vectorSearch aggregation stage) to find the
- * most semantically similar chunks to the query embedding, scoped to the
- * requesting user's own documents only.
- */
 async function retrieveRelevantChunks(queryEmbedding, ownerId, topK = TOP_K) {
   const results = await DocumentChunk.aggregate([
     {
@@ -58,11 +53,7 @@ async function retrieveRelevantChunks(queryEmbedding, ownerId, topK = TOP_K) {
   return results;
 }
 
-/**
- * Builds the final prompt sent to the Groq Chat Completions API,
- * injecting retrieved chunks as labeled context blocks so the model
- * can cite which chunk supported which part of the answer.
- */
+
 function buildContextPrompt(chunks, question) {
   const contextBlocks = chunks
     .map(
@@ -74,9 +65,6 @@ function buildContextPrompt(chunks, question) {
   return `Context from uploaded documents:\n\n${contextBlocks}\n\n---\n\nQuestion: ${question}`;
 }
 
-/**
- * Full RAG query: embed question -> vector search -> build prompt -> chat completion -> format answer + sources.
- */
 async function answerQuestion(question, ownerId) {
   const queryEmbedding = await embedText(question);
   const relevantChunks = await retrieveRelevantChunks(queryEmbedding, ownerId);
@@ -96,7 +84,7 @@ async function answerQuestion(question, ownerId) {
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: userPrompt },
     ],
-    temperature: 0.2, // low temperature: prioritize faithfulness to context over creativity
+    temperature: 0.2, 
   });
 
   const answer = completion.choices[0].message.content.trim();
@@ -112,10 +100,6 @@ async function answerQuestion(question, ownerId) {
   return { answer, sources };
 }
 
-/**
- * Streaming variant used by the chat controller for a ChatGPT-like typing effect.
- * Yields text deltas via the provided callback as they arrive from Groq.
- */
 async function answerQuestionStream(question, ownerId, onToken) {
   const queryEmbedding = await embedText(question);
   const relevantChunks = await retrieveRelevantChunks(queryEmbedding, ownerId);
