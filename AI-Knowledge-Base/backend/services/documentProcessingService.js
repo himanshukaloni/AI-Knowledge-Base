@@ -8,13 +8,7 @@ const logger = require("../config/logger");
 const CHUNK_SIZE = 1000;
 const CHUNK_OVERLAP = 150;
 
-/**
- * Full ingestion pipeline for a single uploaded document:
- * extract -> clean -> chunk -> embed -> persist chunks -> update document status.
- *
- * Runs asynchronously after the upload response has already been sent to
- * the client, so large files don't block the HTTP request.
- */
+
 async function processDocument(documentId) {
   const document = await Document.findById(documentId);
   if (!document) {
@@ -45,7 +39,7 @@ async function processDocument(documentId) {
       owner: document.owner,
       text: chunkTextValue,
       chunkIndex: index,
-      pageNumber: null, // per-page mapping is a documented future enhancement (see README)
+      pageNumber: null,
       embedding: embeddings[index],
     }));
 
