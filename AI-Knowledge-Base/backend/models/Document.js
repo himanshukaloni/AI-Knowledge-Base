@@ -5,9 +5,9 @@ const documentSchema = new mongoose.Schema(
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
     fileName: { type: String, required: true },
     originalName: { type: String, required: true },
-    fileSize: { type: Number, required: true }, // bytes
+    fileSize: { type: Number, required: true }, 
     fileType: { type: String, enum: ["pdf", "docx", "txt"], required: true },
-    storagePath: { type: String, required: true }, // path on disk (local storage)
+    storagePath: { type: String, required: true }, 
     status: {
       type: String,
       enum: ["uploaded", "processing", "processed", "failed"],
@@ -21,6 +21,6 @@ const documentSchema = new mongoose.Schema(
 );
 
 documentSchema.index({ owner: 1, createdAt: -1 });
-documentSchema.index({ originalName: "text" }); // enables text search on filename
+documentSchema.index({ originalName: "text" }); 
 
 module.exports = mongoose.model("Document", documentSchema);
