@@ -12,8 +12,6 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      // Forwards /api requests to the backend during development so we
-      // avoid CORS friction and can use relative URLs from the frontend.
       "/api": {
         target: "http://localhost:5000",
         changeOrigin: true,
