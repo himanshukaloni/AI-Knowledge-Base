@@ -1,8 +1,4 @@
-/**
- * One-off script to create the first admin user.
- * Run with: npm run seed:admin
- * Configure the email/password via env vars or edit below before running.
- */
+
 require("dotenv").config();
 const mongoose = require("mongoose");
 const User = require("../models/User");
