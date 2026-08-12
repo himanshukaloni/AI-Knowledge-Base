@@ -1,10 +1,7 @@
 const { validationResult } = require("express-validator");
 const ApiError = require("../utils/ApiError");
 
-/**
- * Runs after express-validator's chain of checks (in route files) and
- * throws a formatted 400 error if any validation failed.
- */
+
 const validateRequest = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
