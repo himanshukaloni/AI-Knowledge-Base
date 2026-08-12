@@ -16,7 +16,6 @@ const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
-// --- Security & core middleware ---
 app.use(helmet());
 app.use(
   cors({
@@ -26,9 +25,7 @@ app.use(
 );
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
-app.use(mongoSanitize()); // strips $ and . operators from user input to prevent NoSQL injection
-
-// HTTP request logging piped through winston
+app.use(mongoSanitize());
 app.use(
   morgan("combined", {
     stream: { write: (message) => logger.info(message.trim()) },
@@ -37,7 +34,6 @@ app.use(
 
 app.use("/api", apiLimiter);
 
-// --- Routes ---
 app.get("/api/health", (req, res) => res.status(200).json({ success: true, message: "OK" }));
 app.use("/api/auth", authRoutes);
 app.use("/api/documents", documentRoutes);
@@ -45,7 +41,6 @@ app.use("/api/chats", chatRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/admin", adminRoutes);
 
-// --- Error handling (must be last) ---
 app.use(notFound);
 app.use(errorHandler);
 
