@@ -12,7 +12,6 @@ const startServer = async () => {
     logger.info(`Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`);
   });
 
-  // Graceful shutdown on unhandled rejections instead of crashing silently
   process.on("unhandledRejection", (err) => {
     logger.error(`Unhandled Rejection: ${err.message}`);
     server.close(() => process.exit(1));
