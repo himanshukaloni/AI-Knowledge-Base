@@ -19,7 +19,6 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Hash password before saving, but only if it was modified (avoids re-hashing on unrelated updates)
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   const salt = await bcrypt.genSalt(10);
@@ -31,7 +30,6 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Never leak password hash even if the document is accidentally serialized
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.password;
