@@ -1,0 +1,96 @@
+
+/* Modern interactive polish — safe to import once from your global CSS. */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+::selection {
+  background: hsl(var(--primary) / 0.22);
+}
+
+.modern-page {
+  position: relative;
+  isolation: isolate;
+}
+
+.modern-card {
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 240ms ease,
+    border-color 240ms ease,
+    box-shadow 240ms ease;
+}
+
+.modern-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(
+      420px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      hsl(var(--primary) / 0.11),
+      transparent 42%
+    );
+  transition: opacity 240ms ease;
+}
+
+.modern-card:hover {
+  transform: translateY(-3px);
+  border-color: hsl(var(--primary) / 0.28);
+  box-shadow: 0 18px 50px hsl(var(--foreground) / 0.08);
+}
+
+.modern-card:hover::before {
+  opacity: 1;
+}
+
+.modern-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.modern-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-120%);
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    hsl(var(--foreground) / 0.07) 48%,
+    transparent 66%
+  );
+  animation: modern-shimmer 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes modern-shimmer {
+  0%, 55% { transform: translateX(-120%); }
+  85%, 100% { transform: translateX(120%); }
+}
+
+.modern-float {
+  animation: modern-float 5s ease-in-out infinite;
+}
+
+@keyframes modern-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .modern-shimmer::after,
+  .modern-float { animation: none !important; }
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,23 @@
+MODERN UI V2
+
+1. Install the effect dependency:
+   npm install ogl
+
+2. Add this once to your global stylesheet (usually src/index.css or src/globals.css):
+   @import "./styles/modern-effects.css";
+
+   If styles/ is under src, adjust the relative path as needed.
+
+3. The reusable components are:
+   components/effects/GhostFibers.jsx
+   components/effects/PageAmbient.jsx
+   components/effects/AnimatedPage.jsx
+
+4. For the strongest visual result, put <PageAmbient /> behind your main app/layout.
+   Example:
+   <div className="relative min-h-screen">
+     <PageAmbient />
+     <YourExistingLayout />
+   </div>
+
+5. Use className="modern-card" on dashboard/document/chat cards for hover lighting.

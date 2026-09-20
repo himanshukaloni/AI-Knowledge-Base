@@ -1,0 +1,5 @@
+REPLACE these pages in your existing frontend: Login.jsx, Register.jsx, Dashboard.jsx, Documents.jsx, Chat.jsx, Profile.jsx, AdminPanel.jsx, NotFound.jsx.
+Copy components/effects/GhostFibers.jsx and WorkspaceAmbient.jsx into src/components/effects/.
+Run: npm install ogl
+IMPORTANT: If your app has a parent layout with an opaque bg-background, change that parent/main background to bg-transparent or bg-background/70 so the global animation can show through.
+All pages now use the same GhostFibers visual language, translucent glass surfaces, and animation-friendly layering.
