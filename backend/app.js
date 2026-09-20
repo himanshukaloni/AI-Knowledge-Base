@@ -7,6 +7,7 @@ const mongoSanitize = require("express-mongo-sanitize");
 const { errorHandler, notFound } = require("./middleware/errorHandler");
 const { apiLimiter } = require("./middleware/rateLimiter");
 const logger = require("./config/logger");
+const connectDB = require("./config/db");
 
 const authRoutes = require("./routes/authRoutes");
 const documentRoutes = require("./routes/documentRoutes");
@@ -46,6 +47,16 @@ app.use(
   })
 );
 
+// MongoDB connection for Vercel/serverless requests
+app.use("/api", async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Rate limiter
 app.use("/api", apiLimiter);
 
@@ -64,11 +75,11 @@ app.use("/api/chats", chatRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/admin", adminRoutes);
 
-// 404
+// 404 handler
 app.use(notFound);
 
 // Global error handler
 app.use(errorHandler);
 
-// VERY IMPORTANT FOR VERCEL
+// Export Express app for Vercel
 module.exports = app;
