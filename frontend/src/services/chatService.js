@@ -26,7 +26,7 @@ export const chatService = {
     });
 
     if (!response.ok || !response.body) {
-      onError?.(new Error("Failed to reach the server"));
+      onError?.(new Error("Daily AI limit reached You can send only 5 AI messages every 24 hours."));
       return;
     }
 

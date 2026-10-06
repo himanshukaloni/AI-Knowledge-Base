@@ -2,10 +2,13 @@ const mongoose = require("mongoose");
 const DocumentChunk = require("../models/DocumentChunk");
 const groq = require("../config/groq");
 const { embedText } = require("./embeddingService");
-const ApiError = require("../utils/ApiError");
 
-const CHAT_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
-const VECTOR_INDEX_NAME = process.env.VECTOR_INDEX_NAME || "vector_index";
+const CHAT_MODEL =
+  process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+
+const VECTOR_INDEX_NAME =
+  process.env.VECTOR_INDEX_NAME || "vector_index";
+
 const TOP_K = 5;
 
 const SYSTEM_PROMPT = `You are a helpful knowledge base assistant. You must answer the user's question
@@ -27,7 +30,9 @@ async function retrieveRelevantChunks(queryEmbedding, ownerId, topK = TOP_K) {
         queryVector: queryEmbedding,
         numCandidates: topK * 20,
         limit: topK,
-        filter: { owner: new mongoose.Types.ObjectId(ownerId) },
+        filter: {
+          owner: new mongoose.Types.ObjectId(ownerId),
+        },
       },
     },
     {
@@ -36,7 +41,9 @@ async function retrieveRelevantChunks(queryEmbedding, ownerId, topK = TOP_K) {
         chunkIndex: 1,
         pageNumber: 1,
         document: 1,
-        score: { $meta: "vectorSearchScore" },
+        score: {
+          $meta: "vectorSearchScore",
+        },
       },
     },
     {
@@ -47,12 +54,13 @@ async function retrieveRelevantChunks(queryEmbedding, ownerId, topK = TOP_K) {
         as: "documentInfo",
       },
     },
-    { $unwind: "$documentInfo" },
+    {
+      $unwind: "$documentInfo",
+    },
   ]);
 
   return results;
 }
-
 
 function buildContextPrompt(chunks, question) {
   const contextBlocks = chunks
@@ -67,79 +75,109 @@ function buildContextPrompt(chunks, question) {
 
 async function answerQuestion(question, ownerId) {
   const queryEmbedding = await embedText(question);
-  const relevantChunks = await retrieveRelevantChunks(queryEmbedding, ownerId);
+
+  const relevantChunks = await retrieveRelevantChunks(
+    queryEmbedding,
+    ownerId
+  );
 
   if (relevantChunks.length === 0) {
     return {
-      answer: "I couldn't find this information in your uploaded documents.",
-      sources: [],
+      answer:
+        "I couldn't find this information in your uploaded documents.",
     };
   }
 
-  const userPrompt = buildContextPrompt(relevantChunks, question);
+  const userPrompt = buildContextPrompt(
+    relevantChunks,
+    question
+  );
 
   const completion = await groq.chat.completions.create({
     model: CHAT_MODEL,
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: userPrompt },
+      {
+        role: "system",
+        content: SYSTEM_PROMPT,
+      },
+      {
+        role: "user",
+        content: userPrompt,
+      },
     ],
-    temperature: 0.2, 
+    temperature: 0.2,
   });
 
   const answer = completion.choices[0].message.content.trim();
 
-  const sources = relevantChunks.map((chunk) => ({
-    documentId: chunk.documentInfo._id,
-    documentName: chunk.documentInfo.originalName,
-    pageNumber: chunk.pageNumber,
-    snippet: chunk.text.slice(0, 200) + (chunk.text.length > 200 ? "..." : ""),
-    score: chunk.score,
-  }));
-
-  return { answer, sources };
+  return {
+    answer,
+  };
 }
 
-async function answerQuestionStream(question, ownerId, onToken) {
+async function answerQuestionStream(
+  question,
+  ownerId,
+  onToken
+) {
   const queryEmbedding = await embedText(question);
-  const relevantChunks = await retrieveRelevantChunks(queryEmbedding, ownerId);
+
+  const relevantChunks = await retrieveRelevantChunks(
+    queryEmbedding,
+    ownerId
+  );
 
   if (relevantChunks.length === 0) {
-    const fallback = "I couldn't find this information in your uploaded documents.";
+    const fallback =
+      "I couldn't find this information in your uploaded documents.";
+
     onToken(fallback);
-    return { answer: fallback, sources: [] };
+
+    return {
+      answer: fallback,
+    };
   }
 
-  const userPrompt = buildContextPrompt(relevantChunks, question);
+  const userPrompt = buildContextPrompt(
+    relevantChunks,
+    question
+  );
 
   const stream = await groq.chat.completions.create({
     model: CHAT_MODEL,
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: userPrompt },
+      {
+        role: "system",
+        content: SYSTEM_PROMPT,
+      },
+      {
+        role: "user",
+        content: userPrompt,
+      },
     ],
     temperature: 0.2,
     stream: true,
   });
 
   let fullAnswer = "";
+
   for await (const part of stream) {
-    const delta = part.choices[0]?.delta?.content || "";
+    const delta =
+      part.choices[0]?.delta?.content || "";
+
     if (delta) {
       fullAnswer += delta;
       onToken(delta);
     }
   }
 
-  const sources = relevantChunks.map((chunk) => ({
-    documentId: chunk.documentInfo._id,
-    documentName: chunk.documentInfo.originalName,
-    pageNumber: chunk.pageNumber,
-    snippet: chunk.text.slice(0, 200) + (chunk.text.length > 200 ? "..." : ""),
-    score: chunk.score,
-  }));
-
-  return { answer: fullAnswer, sources };
+  return {
+    answer: fullAnswer,
+  };
 }
 
-module.exports = { answerQuestion, answerQuestionStream, retrieveRelevantChunks };
+module.exports = {
+  answerQuestion,
+  answerQuestionStream,
+  retrieveRelevantChunks,
+};

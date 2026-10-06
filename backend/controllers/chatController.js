@@ -4,16 +4,22 @@ const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
 const ApiResponse = require("../utils/ApiResponse");
 
-
 const askQuestion = asyncHandler(async (req, res) => {
   const { question, chatId } = req.body;
 
-  const { answer, sources } = await answerQuestion(question, req.user._id);
+  const { answer } = await answerQuestion(question, req.user._id);
 
   let chat;
+
   if (chatId) {
-    chat = await Chat.findOne({ _id: chatId, owner: req.user._id });
-    if (!chat) throw new ApiError(404, "Conversation not found");
+    chat = await Chat.findOne({
+      _id: chatId,
+      owner: req.user._id,
+    });
+
+    if (!chat) {
+      throw new ApiError(404, "Conversation not found");
+    }
   } else {
     chat = await Chat.create({
       owner: req.user._id,
@@ -21,10 +27,19 @@ const askQuestion = asyncHandler(async (req, res) => {
     });
   }
 
-  chat.messages.push({ question, answer, sources });
+  chat.messages.push({
+    question,
+    answer,
+  });
+
   await chat.save();
 
-  res.status(200).json(new ApiResponse(200, { answer, sources, chatId: chat._id }));
+  res.status(200).json(
+    new ApiResponse(200, {
+      answer,
+      chatId: chat._id,
+    })
+  );
 });
 
 const askQuestionStream = asyncHandler(async (req, res) => {
@@ -41,24 +56,46 @@ const askQuestionStream = asyncHandler(async (req, res) => {
   };
 
   try {
-    const { answer, sources } = await answerQuestionStream(question, req.user._id, (token) => {
-      sendEvent("token", { token });
-    });
+    const { answer } = await answerQuestionStream(
+      question,
+      req.user._id,
+      (token) => {
+        sendEvent("token", { token });
+      }
+    );
 
     let chat;
+
     if (chatId) {
-      chat = await Chat.findOne({ _id: chatId, owner: req.user._id });
-      if (!chat) throw new ApiError(404, "Conversation not found");
+      chat = await Chat.findOne({
+        _id: chatId,
+        owner: req.user._id,
+      });
+
+      if (!chat) {
+        throw new ApiError(404, "Conversation not found");
+      }
     } else {
-      chat = await Chat.create({ owner: req.user._id, title: question.slice(0, 60) });
+      chat = await Chat.create({
+        owner: req.user._id,
+        title: question.slice(0, 60),
+      });
     }
 
-    chat.messages.push({ question, answer, sources });
+    chat.messages.push({
+      question,
+      answer,
+    });
+
     await chat.save();
 
-    sendEvent("done", { sources, chatId: chat._id });
+    sendEvent("done", {
+      chatId: chat._id,
+    });
   } catch (error) {
-    sendEvent("error", { message: error.message || "Something went wrong" });
+    sendEvent("error", {
+      message: error.message || "Something went wrong",
+    });
   } finally {
     res.end();
   }
@@ -77,7 +114,6 @@ const getChats = asyncHandler(async (req, res) => {
     Chat.countDocuments({ owner: req.user._id }),
   ]);
 
-  // Return a lightweight preview list (last message only) for the sidebar
   const chatPreviews = chats.map((chat) => ({
     _id: chat._id,
     title: chat.title,
@@ -89,22 +125,54 @@ const getChats = asyncHandler(async (req, res) => {
   res.status(200).json(
     new ApiResponse(200, {
       chats: chatPreviews,
-      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
     })
   );
 });
 
 const getChatById = asyncHandler(async (req, res) => {
-  const chat = await Chat.findOne({ _id: req.params.id, owner: req.user._id });
-  if (!chat) throw new ApiError(404, "Conversation not found");
-  res.status(200).json(new ApiResponse(200, { chat }));
+  const chat = await Chat.findOne({
+    _id: req.params.id,
+    owner: req.user._id,
+  });
+
+  if (!chat) {
+    throw new ApiError(404, "Conversation not found");
+  }
+
+  res.status(200).json(
+    new ApiResponse(200, {
+      chat,
+    })
+  );
 });
 
 const deleteChat = asyncHandler(async (req, res) => {
-  const chat = await Chat.findOne({ _id: req.params.id, owner: req.user._id });
-  if (!chat) throw new ApiError(404, "Conversation not found");
+  const chat = await Chat.findOne({
+    _id: req.params.id,
+    owner: req.user._id,
+  });
+
+  if (!chat) {
+    throw new ApiError(404, "Conversation not found");
+  }
+
   await chat.deleteOne();
-  res.status(200).json(new ApiResponse(200, null, "Conversation deleted"));
+
+  res.status(200).json(
+    new ApiResponse(200, null, "Conversation deleted")
+  );
 });
 
-module.exports = { askQuestion, askQuestionStream, getChats, getChatById, deleteChat };
+module.exports = {
+  askQuestion,
+  askQuestionStream,
+  getChats,
+  getChatById,
+  deleteChat,
+};

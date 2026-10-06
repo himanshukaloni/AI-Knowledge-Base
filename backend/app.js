@@ -17,13 +17,10 @@ const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
-// Important for Vercel / reverse proxy
 app.set("trust proxy", 1);
 
-// Security
 app.use(helmet());
 
-// CORS
 app.use(
   cors({
     origin: process.env.CLIENT_URL || "http://localhost:5173",
@@ -31,14 +28,10 @@ app.use(
   })
 );
 
-// Body parser
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
-
-// MongoDB sanitization
 app.use(mongoSanitize());
 
-// Logger
 app.use(
   morgan("combined", {
     stream: {
@@ -47,7 +40,6 @@ app.use(
   })
 );
 
-// MongoDB connection for Vercel/serverless requests
 app.use("/api", async (req, res, next) => {
   try {
     await connectDB();
@@ -57,10 +49,8 @@ app.use("/api", async (req, res, next) => {
   }
 });
 
-// Rate limiter
 app.use("/api", apiLimiter);
 
-// Health check
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
@@ -68,18 +58,13 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/documents", documentRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/admin", adminRoutes);
 
-// 404 handler
 app.use(notFound);
-
-// Global error handler
 app.use(errorHandler);
 
-// Export Express app for Vercel
 module.exports = app;
